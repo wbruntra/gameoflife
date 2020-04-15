@@ -24,6 +24,7 @@ class App extends React.Component {
   }
 
   go = () => {
+    console.log('go clicked')
     const { tickInterval } = this.state
     this.timerId = setInterval(this.iterate, 570 - tickInterval)
     this.setState((prevState) => ({
@@ -167,6 +168,86 @@ class App extends React.Component {
     // localStorage.setItem('saves', saves)
   }
 
+  renderControls = () => {
+    const { running, lifeSeed, gridSize } = this.state
+    const buttonList = [
+      {
+        text: 'GO!',
+        visible: !running,
+        clickHandler: () => {
+          this.go()
+        },
+      },
+      {
+        text: 'Next',
+        visible: !running,
+        clickHandler: () => {
+          this.iterate()
+        },
+      },
+      {
+        text: 'STOP!',
+        visible: running,
+        clickHandler: () => {
+          this.stop()
+        },
+      },
+      {
+        text: 'Clear Grid',
+        visible: !running,
+        clickHandler: () => {
+          this.clearGrid()
+        },
+      },
+      {
+        text: 'Random',
+        visible: !running,
+        clickHandler: () => {
+          this.setState({
+            grid: makeHashGrid(lifeSeed, gridSize),
+            ticks: 0,
+          })
+        },
+      },
+      {
+        text: 'Save',
+        visible: !running,
+        clickHandler: () => {
+          this.save()
+        },
+      },
+      {
+        text: 'Restore',
+        visible: !running,
+        clickHandler: () => {
+          this.load('default')
+        },
+      },
+      {
+        text: 'Preset',
+        visible: !running,
+        clickHandler: () => {
+          this.load('HO')
+        },
+      },
+    ]
+    return (
+      <div className="col-lg-2 mb-3 mb-lg-0">
+        {buttonList.map((b, i) => {
+          return (
+            <button
+              key={`control-${i}`}
+              className={`btn btn-primary w-75 ${b.visible ? '' : 'd-none'}`}
+              onClick={b.clickHandler}
+            >
+              {b.text}
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   render() {
     const { grid, gridSize, lifeSeed, ticks, running, tickInterval } = this.state
     const liveCells = grid.size
@@ -182,74 +263,7 @@ class App extends React.Component {
           </div>
         </div>
         <div className="row mb-3">
-          <div className="col-lg-2 mb-3 mb-lg-0">
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                if (!running) {
-                  this.go()
-                } else {
-                  this.stop()
-                }
-              }}
-            >
-              {!running ? 'GO!' : 'STOP!'}
-            </button>
-            {!running && (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  this.clearGrid()
-                }}
-              >
-                Clear Grid
-              </button>
-            )}{' '}
-            {!running && (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  this.setState({
-                    grid: makeHashGrid(lifeSeed, gridSize),
-                    ticks: 0,
-                  })
-                }}
-              >
-                Random
-              </button>
-            )}{' '}
-            {!running && (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  this.iterate()
-                }}
-              >
-                Step
-              </button>
-            )}{' '}
-            {!running && (
-              <>
-                <button className="btn btn-primary" onClick={this.save}>
-                  Save
-                </button>
-                <button className="btn btn-primary" onClick={() => this.load('default')}>
-                  Load
-                </button>
-              </>
-            )}
-            {!running && (
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  this.load('HO')
-                }}
-              >
-                Preset
-              </button>
-            )}
-          </div>
-
+          {this.renderControls()}
           <div className="col-lg-10">{this.renderHashGrid(grid)}</div>
         </div>
         <div className="row">
@@ -331,7 +345,7 @@ class App extends React.Component {
         <hr />
         <div className="row">
           <div className={`explanation ${this.state.explanation} ? 'show' : ''`}>
-            <p>
+            <p className="pl-3">
               <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Wikipedia</a>
             </p>
             <ul>
