@@ -5,7 +5,7 @@ import saves from './saves'
 
 class App extends React.Component {
   state = {
-    gridSize: 36,
+    gridSize: 32,
     lifeSeed: 0.2,
     grid: new Set(),
     ticks: 0,
@@ -74,7 +74,7 @@ class App extends React.Component {
   iterate = () => {
     const updater = (state) => {
       const { grid, gridSize, ticks, wrap } = state
-      const nextGrid = getNextIteration(grid, gridSize, wrap)
+      const nextGrid = getNextIteration(grid, gridSize, wrap, true)
       return {
         grid: nextGrid,
         ticks: ticks + 1,
@@ -93,7 +93,6 @@ class App extends React.Component {
 
   renderHashGrid = () => {
     const { gridSize, grid } = this.state
-    console.log(gridSize)
     return (
       <table>
         <tbody>
@@ -114,8 +113,11 @@ class App extends React.Component {
                         this.handleCellClick(cellName)
                       }}
                       key={`cell-${cellName}`}
-                      className={grid.has(cellName) ? 'black cell' : 'cell'}
-                    />
+                      className={`${grid.has(cellName) ? '' : ''}  cell`}
+                    >
+                      <div className={grid.has(cellName) ? 'live' : ''} >
+                      </div>
+                    </td>
                   )
                 })}
               </tr>
@@ -170,15 +172,7 @@ class App extends React.Component {
     const { grid, gridSize, lifeSeed, ticks, running, tickInterval } = this.state
     const liveCells = grid.size
     return (
-      <div
-        className="container"
-        // onPointerDown={() => {
-        //   this.setState({ mouseClicked: true });
-        // }}
-        // onPointerUp={() => {
-        //   this.setState({ mouseClicked: false });
-        // }}
-      >
+      <div className="container">
         <h1>Conway's Game of Life</h1>
         <div className="row">
           <div className="col">
@@ -188,8 +182,8 @@ class App extends React.Component {
             <p>Live cells: {liveCells}</p>
           </div>
         </div>
-        <div className="row">
-          <div className="col-md-2">
+        <div className="row mb-3">
+          <div className="col-md-2 mb-3 mb-md-0">
             <button
               className="btn btn-primary"
               onClick={() => {
@@ -257,7 +251,7 @@ class App extends React.Component {
             )}
           </div>
 
-          <div className="col-md-10">{this.renderHashGrid(grid)}</div>
+          <div className="col-md-9">{this.renderHashGrid(grid)}</div>
         </div>
         <div className="row">
           <div className="col-8">
@@ -311,7 +305,9 @@ class App extends React.Component {
               </div>
             ) : (
               <div>
-                <label className="mr-3" htmlFor="customRange1">Slower/Faster</label>
+                <label className="mr-3" htmlFor="customRange1">
+                  Slower/Faster
+                </label>
                 <input
                   type="range"
                   className="custom-range"
@@ -338,8 +334,8 @@ class App extends React.Component {
           <div className={`explanation ${this.state.explanation} ? 'show' : ''`}>
             <ul>
               <li>Each cell has 8 neighboring cells</li>
-              <li>A dead cell with exactly 3 live neighbors will come to life</li>
               <li>A live cell with 2 or 3 live neighbors will continue to the next iteration</li>
+              <li>A dead cell with exactly 3 live neighbors will come to life</li>
               <li>A live cell with 4 or more live neighbors will die, as if by overpopulation</li>
             </ul>
           </div>

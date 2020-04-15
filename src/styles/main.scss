@@ -18,7 +18,7 @@ $silver: #DDDDDD;
 $gray:   #AAAAAA;
 $black:  #111111;
 
-$primary: $aqua;
+$primary: $olive;
 
 @import '~bootstrap/scss/bootstrap.scss';
 
@@ -50,10 +50,20 @@ table {
   border-bottom: 1px solid $black;
 }
 
-.black {
-  background-color: $black;
-  border-color: $white;
+.cell {
+  padding: 1px;
 }
+
+.live {
+  width: 100%;
+  height: 100%;
+  background-color: $navy;
+}
+
+// .black, .live {
+//   background-color: $black;
+//   border-color: $white;
+// }
 
 .grid-row:first-child .cell {
   border-top: 1px solid $black;

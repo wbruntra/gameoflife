@@ -85,7 +85,7 @@ export const flipCell = (cellName, grid) => {
   return clonedGrid
 }
 
-export const getNextIteration = (grid, gridSize, wrap = true) => {
+export const getNextIteration = (grid, gridSize, wrap = true, limitSize = false) => {
   const newGrid = new Set()
   // First pass: Collect all live cells and their neighbors for evaluation
   const cellsToEvaluate = new Set()
@@ -98,6 +98,10 @@ export const getNextIteration = (grid, gridSize, wrap = true) => {
   })
   // Second pass: Evaluate cells
   cellsToEvaluate.forEach((cellName) => {
+    let [row, column] = JSON.parse(cellName)
+    if (limitSize && (Math.abs(row) > 150 || Math.abs(column) > 150)) {
+      return
+    }
     const currentState = grid.has(cellName)
     const liveNeighborCount = countLiveNeighbors(cellName, grid, gridSize, wrap)
     const newCellState = determineNextCellState(liveNeighborCount, currentState)
@@ -113,7 +117,6 @@ export const makeHashGrid = (lifeSeed, gridSize) => {
   ;[...Array(gridSize).keys()].forEach((i) => {
     return [...Array(gridSize).keys()].forEach((j) => {
       if (Math.random() > 1 - lifeSeed) {
-        // const cellName = `${i}-${j}`
         const cellName = JSON.stringify([i, j])
         grid.add(cellName)
       }
