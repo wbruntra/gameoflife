@@ -46,8 +46,8 @@ table {
   height: $square-size;
   width: $square-size;
   border-radius: 0;
-  border-left: 1px solid $black;
-  border-bottom: 1px solid $black;
+  border-left: 1px solid $gray;
+  border-bottom: 1px solid $gray;
 }
 
 .cell {
@@ -61,16 +61,16 @@ table {
 }
 
 // .black, .live {
-//   background-color: $black;
+//   background-color: $gray;
 //   border-color: $white;
 // }
 
 .grid-row:first-child .cell {
-  border-top: 1px solid $black;
+  border-top: 1px solid $gray;
 }
 
 .cell:last-child {
-  border-right: 1px solid $black;
+  border-right: 1px solid $gray;
 }
 
 input[type="range"] {
