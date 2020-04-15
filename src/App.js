@@ -113,10 +113,9 @@ class App extends React.Component {
                         this.handleCellClick(cellName)
                       }}
                       key={`cell-${cellName}`}
-                      className={`${grid.has(cellName) ? '' : ''}  cell`}
+                      className={`cell`}
                     >
-                      <div className={grid.has(cellName) ? 'live' : ''} >
-                      </div>
+                      <div className={grid.has(cellName) ? 'live' : ''}></div>
                     </td>
                   )
                 })}
@@ -332,6 +331,9 @@ class App extends React.Component {
         <hr />
         <div className="row">
           <div className={`explanation ${this.state.explanation} ? 'show' : ''`}>
+            <p>
+              <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Wikipedia</a>
+            </p>
             <ul>
               <li>Each cell has 8 neighboring cells</li>
               <li>A live cell with 2 or 3 live neighbors will continue to the next iteration</li>
