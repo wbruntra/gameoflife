@@ -1,5 +1,8 @@
 import { forEach } from 'lodash'
 
+/**
+ * Add a + b where range of result is between 0 and clockSize
+ */
 const clockAddition = (a, b, clockSize) => {
   if (a + b < 0) {
     return a + clockSize + b
@@ -10,16 +13,32 @@ const clockAddition = (a, b, clockSize) => {
   return a + b
 }
 
-const getNeighbors = (cellName, gridSize) => {
-  let [row, column] = cellName.split('-').map((x) => Number(x))
+/**
+ * Get Set of neighbors for cellName
+ */
+const getNeighbors = (cellName, grid, gridSize, wrap = true) => {
+  let liveNeighborCount = 0
+  let [row, column] = JSON.parse(cellName)
   let rowPointer, colPointer, neighborName
   const neighbors = new Set()
   for (let i = -1; i <= 1; i++) {
-    colPointer = clockAddition(column, i, gridSize)
+    if (wrap) {
+      colPointer = clockAddition(column, i, gridSize)
+    } else {
+      colPointer = column + i
+    }
     for (let j = -1; j <= 1; j++) {
-      rowPointer = clockAddition(row, j, gridSize)
-      if (colPointer !== column || rowPointer !== row) {
-        neighborName = `${rowPointer}-${colPointer}`
+      if (wrap) {
+        rowPointer = clockAddition(row, j, gridSize)
+      } else {
+        rowPointer = row + j
+      }
+      // neighborName = `${rowPointer}-${colPointer}`
+      neighborName = JSON.stringify([rowPointer, colPointer])
+      if (neighborName !== cellName) {
+        // if (grid.has(neighborName)) {
+        //   liveNeighborCount++
+        // }
         neighbors.add(neighborName)
       }
     }
@@ -27,10 +46,10 @@ const getNeighbors = (cellName, gridSize) => {
   return neighbors
 }
 
-const countLiveNeighbors = (cellName, grid, gridSize) => {
-  const neighbors = getNeighbors(cellName, gridSize)
+const countLiveNeighbors = (cellName, grid, gridSize, wrap = true) => {
+  const cellNeighbors = getNeighbors(cellName, grid, gridSize, wrap)
   let count = 0
-  neighbors.forEach((neighborName) => {
+  cellNeighbors.forEach((neighborName) => {
     if (grid.has(neighborName)) {
       count++
     }
@@ -38,11 +57,13 @@ const countLiveNeighbors = (cellName, grid, gridSize) => {
   return count
 }
 
-const determineNextState = (liveNeighbors, currentState) => {
+const getLiveNeighborCount = (cellName, grid) => {}
+
+const determineNextCellState = (liveNeighbors, currentCellState) => {
   if (liveNeighbors === 3) {
     return true
   }
-  if (liveNeighbors === 2 && currentState) {
+  if (liveNeighbors === 2 && currentCellState) {
     return true
   }
   return false
@@ -50,7 +71,7 @@ const determineNextState = (liveNeighbors, currentState) => {
 
 const calculateCellState = (cellName, grid, gridSize) => {
   const liveNeighbors = countLiveNeighbors(cellName, grid, gridSize)
-  const newState = determineNextState(liveNeighbors, grid.has(cellName))
+  const newState = determineNextCellState(liveNeighbors, grid.has(cellName))
   return newState
 }
 
@@ -64,24 +85,22 @@ export const flipCell = (cellName, grid) => {
   return clonedGrid
 }
 
-export const getNextIteration = (grid, gridSize) => {
+export const getNextIteration = (grid, gridSize, wrap = true) => {
   const newGrid = new Set()
-  const counter = {}
-  // First pass: propagate all live cells to a counter on their neighbors
+  // First pass: Collect all live cells and their neighbors for evaluation
+  const cellsToEvaluate = new Set()
   grid.forEach((cellName) => {
-    const newNeighbors = getNeighbors(cellName, gridSize)
-    newNeighbors.forEach((neighborName) => {
-      if (counter.hasOwnProperty(neighborName)) {
-        counter[neighborName] = counter[neighborName] + 1
-      } else {
-        counter[neighborName] = 1
-      }
+    cellsToEvaluate.add(cellName)
+    const cellNeighbors = getNeighbors(cellName, grid, gridSize, wrap)
+    cellNeighbors.forEach((neighborName) => {
+      cellsToEvaluate.add(neighborName)
     })
   })
-  // Second pass: use counter to calculate whether cells from first pass should be alive
-  forEach(counter, (liveNeighbors, cellName) => {
+  // Second pass: Evaluate cells
+  cellsToEvaluate.forEach((cellName) => {
     const currentState = grid.has(cellName)
-    const newCellState = determineNextState(liveNeighbors, currentState)
+    const liveNeighborCount = countLiveNeighbors(cellName, grid, gridSize, wrap)
+    const newCellState = determineNextCellState(liveNeighborCount, currentState)
     if (newCellState) {
       newGrid.add(cellName)
     }
@@ -94,7 +113,8 @@ export const makeHashGrid = (lifeSeed, gridSize) => {
   ;[...Array(gridSize).keys()].forEach((i) => {
     return [...Array(gridSize).keys()].forEach((j) => {
       if (Math.random() > 1 - lifeSeed) {
-        const cellName = `${i}-${j}`
+        // const cellName = `${i}-${j}`
+        const cellName = JSON.stringify([i, j])
         grid.add(cellName)
       }
     })

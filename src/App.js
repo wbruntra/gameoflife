@@ -1,33 +1,41 @@
 import * as React from 'react'
-// import Button from '@material-ui/core/Button'
-import './main.scss'
+import './styles/main.scss'
 import { getNextIteration, makeHashGrid, flipCell } from './utils'
 import saves from './saves'
 
 class App extends React.Component {
   state = {
-    gridSize: 48,
+    gridSize: 36,
     lifeSeed: 0.2,
     grid: new Set(),
     ticks: 0,
     running: false,
     tickInterval: 210,
     mouseClicked: false,
+    wrap: false,
+  }
+
+  setGridSize = (size) => {
+    const gridSize = Number(size)
+    this.setState({
+      gridSize,
+    })
+    this.styles = this.adjustTableStyles(gridSize)
   }
 
   go = () => {
     const { tickInterval } = this.state
     this.timerId = setInterval(this.iterate, 570 - tickInterval)
-    this.setState({
-      running: true,
-    })
+    this.setState((prevState) => ({
+      running: !prevState.running,
+    }))
   }
 
   stop = () => {
     clearInterval(this.timerId)
-    this.setState({
-      running: false,
-    })
+    this.setState((prevState) => ({
+      running: !prevState.running,
+    }))
   }
 
   handleCellClick = (cellName) => {
@@ -40,16 +48,20 @@ class App extends React.Component {
     }
   }
 
-  componentDidMount = () => {
-    const { gridSize, lifeSeed } = this.state
+  adjustTableStyles = (gridSize) => {
     const cellWidth =
       window.screen.width > 600
         ? Math.floor(600 / gridSize) - 2
         : Math.floor(window.screen.width / gridSize) - 2
-    this.styles = {
+    return {
       width: cellWidth,
       height: cellWidth,
     }
+  }
+
+  componentDidMount = () => {
+    const { gridSize, lifeSeed } = this.state
+    this.styles = this.adjustTableStyles(gridSize)
     this.setState({
       grid: makeHashGrid(lifeSeed, gridSize),
     })
@@ -61,8 +73,8 @@ class App extends React.Component {
 
   iterate = () => {
     const updater = (state) => {
-      const { grid, gridSize, ticks } = state
-      const nextGrid = getNextIteration(grid, gridSize)
+      const { grid, gridSize, ticks, wrap } = state
+      const nextGrid = getNextIteration(grid, gridSize, wrap)
       return {
         grid: nextGrid,
         ticks: ticks + 1,
@@ -81,6 +93,7 @@ class App extends React.Component {
 
   renderHashGrid = () => {
     const { gridSize, grid } = this.state
+    console.log(gridSize)
     return (
       <table>
         <tbody>
@@ -88,7 +101,7 @@ class App extends React.Component {
             return (
               <tr key={`row-${i}`} className="grid-row">
                 {[...Array(gridSize).keys()].map((j) => {
-                  const cellName = `${i}-${j}`
+                  const cellName = JSON.stringify([i, j])
                   return (
                     <td
                       style={this.styles}
@@ -127,7 +140,13 @@ class App extends React.Component {
   }
 
   load = (key) => {
-    const grid = new Set(saves[key])
+    let savedArray
+    if (key === 'default') {
+      savedArray = JSON.parse(localStorage.getItem('save') || '[]')
+    } else {
+      savedArray = JSON.parse(saves[key])
+    }
+    const grid = new Set(savedArray)
     this.setState({
       grid,
     })
@@ -135,16 +154,21 @@ class App extends React.Component {
 
   save = () => {
     const { grid } = this.state
+    const save = JSON.parse(localStorage.getItem('save') || '[]')
     const saves = JSON.parse(localStorage.getItem('saves') || '{}')
     const now = new Date()
     const timeString = `${now.toLocaleDateString()} ${now.toLocaleTimeString()}`
     const gridString = JSON.stringify(Array.from(grid))
-    saves[timeString] = grid
-    console.log(saves)
+    saves[timeString] = [...grid]
+    const savesString = JSON.stringify(saves)
+    console.log(savesString)
+    localStorage.setItem('save', gridString)
+    // localStorage.setItem('saves', saves)
   }
 
   render() {
     const { grid, gridSize, lifeSeed, ticks, running, tickInterval } = this.state
+    const liveCells = grid.size
     return (
       <div
         className="container"
@@ -155,49 +179,19 @@ class App extends React.Component {
         //   this.setState({ mouseClicked: false });
         // }}
       >
-        <p>Ticks: {ticks}</p>
-        {this.renderHashGrid(grid)}
+        <h1>Conway's Game of Life</h1>
         <div className="row">
-          <div className="section">
-            {!running && (
-              <button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  this.clearGrid()
-                }}
-              >
-                Clear Grid
-              </button>
-            )}{' '}
-            {!running && (
-              <button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  this.setState({
-                    grid: makeHashGrid(lifeSeed, gridSize),
-                    ticks: 0,
-                  })
-                }}
-              >
-                Random Grid
-              </button>
-            )}{' '}
-            {!running && (
-              <button
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                  this.iterate()
-                }}
-              >
-                Step
-              </button>
-            )}{' '}
+          <div className="col">
+            <p>Iterations: {ticks}</p>
+          </div>
+          <div className="col">
+            <p>Live cells: {liveCells}</p>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-md-2">
             <button
-              variant="contained"
-              color="primary"
+              className="btn btn-primary"
               onClick={() => {
                 if (!running) {
                   this.go()
@@ -208,57 +202,147 @@ class App extends React.Component {
             >
               {!running ? 'GO!' : 'STOP!'}
             </button>
-            {/* <button color="primary" onClick={this.save}>
-              Save
-            </button> */}
             {!running && (
               <button
-                color="primary"
+                className="btn btn-primary"
+                onClick={() => {
+                  this.clearGrid()
+                }}
+              >
+                Clear Grid
+              </button>
+            )}{' '}
+            {!running && (
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  this.setState({
+                    grid: makeHashGrid(lifeSeed, gridSize),
+                    ticks: 0,
+                  })
+                }}
+              >
+                Random
+              </button>
+            )}{' '}
+            {!running && (
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  this.iterate()
+                }}
+              >
+                Step
+              </button>
+            )}{' '}
+            {!running && (
+              <>
+                <button className="btn btn-primary" onClick={this.save}>
+                  Save
+                </button>
+                <button className="btn btn-primary" onClick={() => this.load('default')}>
+                  Load
+                </button>
+              </>
+            )}
+            {!running && (
+              <button
+                className="btn btn-primary"
                 onClick={() => {
                   this.load('HO')
                 }}
               >
-                CLICK HERE!
+                Preset
               </button>
             )}
           </div>
+
+          <div className="col-md-10">{this.renderHashGrid(grid)}</div>
         </div>
         <div className="row">
-          {/* <Slider
-              style={{width: '400px'}}
-              value={100 - lifeSeed * 100}
-              aria-labelledby="label"
-              onChange={this.handleSliderChange}
-            /> */}
-          {!running ? (
-            <input
-              type="range"
-              min="1"
-              max="50"
-              value={lifeSeed * 100}
-              className="slider"
-              onChange={this.handleSliderChange}
-            />
-          ) : (
-            <div>
-              <label>Slower/Faster</label>
-              <input
-                type="range"
-                min="3"
-                max="51"
-                step="6"
-                value={tickInterval / 10}
-                onChange={(e) => {
-                  const newInterval = Number(e.target.value) * 10
-                  clearInterval(this.timerId)
-                  this.timerId = setInterval(this.iterate, 570 - newInterval)
-                  this.setState({
-                    tickInterval: newInterval,
-                  })
-                }}
-              />
-            </div>
-          )}
+          <div className="col-8">
+            {!running ? (
+              <div>
+                <div className="form-check">
+                  <input
+                    onChange={() => {
+                      this.setState((prevState) => ({ wrap: !prevState.wrap }))
+                    }}
+                    className="form-check-input"
+                    checked={this.state.wrap}
+                    type="checkbox"
+                    id="defaultCheck1"
+                  />
+
+                  <label className="form-check-label" htmlFor="defaultCheck1">
+                    Round world?
+                  </label>
+                </div>
+
+                <div>
+                  <label className="mr-3" htmlFor="densityRange">
+                    Initial Density
+                  </label>
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={lifeSeed * 100}
+                    className="custom-range"
+                    onChange={this.handleSliderChange}
+                    id="densityRange"
+                  />
+                </div>
+                <div>
+                  <label className="mr-3" htmlFor="grid-size">
+                    Grid Size
+                  </label>
+                  <input
+                    id="grid-size"
+                    type="number"
+                    min="10"
+                    max="50"
+                    value={this.state.gridSize}
+                    onChange={(e) => {
+                      this.setGridSize(e.target.value)
+                    }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="mr-3" htmlFor="customRange1">Slower/Faster</label>
+                <input
+                  type="range"
+                  className="custom-range"
+                  id="customRange1"
+                  min="3"
+                  max="51"
+                  step="6"
+                  value={tickInterval / 10}
+                  onChange={(e) => {
+                    const newInterval = Number(e.target.value) * 10
+                    clearInterval(this.timerId)
+                    this.timerId = setInterval(this.iterate, 570 - newInterval)
+                    this.setState({
+                      tickInterval: newInterval,
+                    })
+                  }}
+                ></input>
+              </div>
+            )}
+          </div>
+        </div>
+        <hr />
+        <div className="row">
+          <div className={`explanation ${this.state.explanation} ? 'show' : ''`}>
+            <ul>
+              <li>Each cell has 8 neighboring cells</li>
+              <li>A dead cell with exactly 3 live neighbors will come to life</li>
+              <li>A live cell with 2 or 3 live neighbors will continue to the next iteration</li>
+              <li>A live cell with 4 or more live neighbors will die, as if by overpopulation</li>
+            </ul>
+          </div>
         </div>
       </div>
     )

@@ -1,0 +1,77 @@
+$aqua:  #7FDBFF;
+$blue:  #0074D9;
+$navy:  #001F3F;
+$teal:  #39CCCC;
+$green: #2ECC40;
+$olive: #3D9970;
+$lime:  #01FF70;
+
+$purple:  #B10DC9;
+$yellow:  #FFDC00;
+$orange:  #FF851B;
+$fuchsia: #F012BE;
+$red:     #FF4136;
+$maroon:  #85144B;
+
+$white:  #FFFFFF;
+$silver: #DDDDDD;
+$gray:   #AAAAAA;
+$black:  #111111;
+
+$primary: $aqua;
+
+@import '~bootstrap/scss/bootstrap.scss';
+
+$square-size: 21px;
+
+body {
+  padding-top: 24px;
+  font-family: 'Muli', sans-serif;
+}
+
+table {
+  border-spacing: 0;
+  margin-bottom: 16px;
+}
+
+.grid-row {
+  line-height: 0;
+}
+
+.cell {
+  line-height: 0;
+  display:inline-block;
+  margin:0;
+  padding:0;
+  height: $square-size;
+  width: $square-size;
+  border-radius: 0;
+  border-left: 1px solid $black;
+  border-bottom: 1px solid $black;
+}
+
+.black {
+  background-color: $black;
+  border-color: $white;
+}
+
+.grid-row:first-child .cell {
+  border-top: 1px solid $black;
+}
+
+.cell:last-child {
+  border-right: 1px solid $black;
+}
+
+input[type="range"] {
+  width: 50%;
+}
+
+.slider {
+  height: 50px;
+}
+
+.btn {
+  margin-right: 8px;
+  margin-top: 8px;
+}
