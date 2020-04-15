@@ -182,7 +182,7 @@ class App extends React.Component {
           </div>
         </div>
         <div className="row mb-3">
-          <div className="col-md-2 mb-3 mb-md-0">
+          <div className="col-lg-2 mb-3 mb-lg-0">
             <button
               className="btn btn-primary"
               onClick={() => {
@@ -250,7 +250,7 @@ class App extends React.Component {
             )}
           </div>
 
-          <div className="col-md-9">{this.renderHashGrid(grid)}</div>
+          <div className="col-lg-10">{this.renderHashGrid(grid)}</div>
         </div>
         <div className="row">
           <div className="col-8">
